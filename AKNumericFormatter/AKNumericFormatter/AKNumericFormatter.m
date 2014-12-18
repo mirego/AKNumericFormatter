@@ -71,31 +71,21 @@
   if( onlyDigitsString.length == 0 ) {
     return @"";
   }
-  NSMutableString* formattedString = [NSMutableString string];
-  for( NSUInteger maskIndex = 0, digitIndex = 0; maskIndex < self.mask.length; ++maskIndex ) {
-    const unichar maskCharacter = [self.mask characterAtIndex:maskIndex];
-    if( maskCharacter == self.placeholderCharacter ) {
-      if( digitIndex < onlyDigitsString.length ) {
-        [formattedString appendString:[onlyDigitsString substringWithRange:NSMakeRange(digitIndex, 1)]];
-        ++digitIndex;
-      } else {
-        break;
-      }
-    } else if( self.mode != AKNumericFormatterFillIn && [[NSCharacterSet decimalDigitCharacterSet] characterIsMember:maskCharacter] ) {
-      if( digitIndex < onlyDigitsString.length
-        && maskCharacter == [onlyDigitsString characterAtIndex:digitIndex] )
-      {
-        [formattedString appendString:[NSString stringWithCharacters:&maskCharacter length:1]];
-        ++digitIndex;
-      } else if( self.mode == AKNumericFormatterMixed ) {
-        [formattedString appendString:[NSString stringWithCharacters:&maskCharacter length:1]];
-      } else {
-        break;
-      }
-    } else {
-      [formattedString appendString:[NSString stringWithCharacters:&maskCharacter length:1]];
-    }
+
+  NSString *formattedString = @"";
+  switch (self.mode) {
+    case AKNumericFormatterFillIn:
+      formattedString = [self fillInModeFormattedString:onlyDigitsString];
+      break;
+    case AKNumericFormatterMixed:
+      formattedString = [self mixedModeFormattedString:onlyDigitsString];
+      break;
+    case AKNumericFormatterStrict:
+    default:
+      formattedString = [self strictModeFormattedString:onlyDigitsString];
+      break;
   }
+
   if( [formattedString stringContainingOnlyDecimalDigits].length == 0 ) {
     return @"";
   }
@@ -139,6 +129,83 @@
                                 usingMask:self.mask
                      placeholderCharacter:self.placeholderCharacter
                                      mode:AKNumericFormatterFillIn];
+}
+
+//------------------------------------------------------------------------------
+#pragma mark - Private methods
+//------------------------------------------------------------------------------
+
+-(NSString*)strictModeFormattedString:(NSString*)onlyDigitsString
+{
+  NSMutableString* formattedString = [NSMutableString string];
+  for( NSUInteger maskIndex = 0, digitIndex = 0; maskIndex < self.mask.length; ++maskIndex ) {
+    const unichar maskCharacter = [self.mask characterAtIndex:maskIndex];
+    if( maskCharacter == self.placeholderCharacter ) {
+      if( digitIndex < onlyDigitsString.length ) {
+        [formattedString appendString:[onlyDigitsString substringWithRange:NSMakeRange(digitIndex, 1)]];
+        ++digitIndex;
+      } else {
+        break;
+      }
+    } else if( [[NSCharacterSet decimalDigitCharacterSet] characterIsMember:maskCharacter] ) {
+      if( digitIndex < onlyDigitsString.length && maskCharacter == [onlyDigitsString characterAtIndex:digitIndex] ) {
+        [formattedString appendString:[NSString stringWithCharacters:&maskCharacter length:1]];
+        ++digitIndex;
+      } else {
+        break;
+      }
+    } else if (digitIndex < onlyDigitsString.length) {
+      [formattedString appendString:[NSString stringWithCharacters:&maskCharacter length:1]];
+    }
+  }
+  return formattedString;
+}
+
+-(NSString*)fillInModeFormattedString:(NSString*)onlyDigitsString
+{
+  NSMutableString* formattedString = [NSMutableString string];
+  for( NSUInteger maskIndex = 0, digitIndex = 0; maskIndex < self.mask.length; ++maskIndex ) {
+    const unichar maskCharacter = [self.mask characterAtIndex:maskIndex];
+    if( maskCharacter == self.placeholderCharacter ) {
+      if( digitIndex < onlyDigitsString.length ) {
+        [formattedString appendString:[onlyDigitsString substringWithRange:NSMakeRange(digitIndex, 1)]];
+        ++digitIndex;
+      } else {
+        break;
+      }
+    } else if (digitIndex < onlyDigitsString.length) {
+      [formattedString appendString:[NSString stringWithCharacters:&maskCharacter length:1]];
+    }
+  }
+  return formattedString;
+}
+
+-(NSString*)mixedModeFormattedString:(NSString*)onlyDigitsString
+{
+  NSMutableString* formattedString = [NSMutableString string];
+  for( NSUInteger maskIndex = 0, digitIndex = 0; maskIndex < self.mask.length; ++maskIndex ) {
+    const unichar maskCharacter = [self.mask characterAtIndex:maskIndex];
+    if( maskCharacter == self.placeholderCharacter ) {
+      if( digitIndex < onlyDigitsString.length ) {
+        [formattedString appendString:[onlyDigitsString substringWithRange:NSMakeRange(digitIndex, 1)]];
+        ++digitIndex;
+      } else {
+        break;
+      }
+    } else if( [[NSCharacterSet decimalDigitCharacterSet] characterIsMember:maskCharacter] ) {
+      if( digitIndex < onlyDigitsString.length && maskCharacter == [onlyDigitsString characterAtIndex:digitIndex] ) {
+        [formattedString appendString:[NSString stringWithCharacters:&maskCharacter length:1]];
+        ++digitIndex;
+      } else if( digitIndex < onlyDigitsString.length && maskCharacter != [onlyDigitsString characterAtIndex:digitIndex] ) {
+        [formattedString appendString:[NSString stringWithCharacters:&maskCharacter length:1]];
+      } else {
+        break;
+      }
+    } else if (digitIndex < onlyDigitsString.length) {
+      [formattedString appendString:[NSString stringWithCharacters:&maskCharacter length:1]];
+    }
+  }
+  return formattedString;
 }
 
 @end
