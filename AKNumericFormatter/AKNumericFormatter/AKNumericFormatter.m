@@ -11,6 +11,7 @@
 @property(nonatomic, assign) AKNumericFormatterMode mode;
 @property(nonatomic, copy) NSString* mask;
 @property(nonatomic, assign) unichar placeholderCharacter;
+@property(nonatomic, copy) NSCharacterSet* characterSet;
 
 @end
 
@@ -32,11 +33,18 @@
                        mode:AKNumericFormatterStrict];
 }
 
++(instancetype)formatterWithMask:(NSString *)mask
+            placeholderCharacter:(unichar)placeholderCharacter
+                            mode:(AKNumericFormatterMode)mode
+                    characterSet:(NSCharacterSet *)characterSet
+{
+    return [[AKNumericFormatter alloc] initWithMask:mask placeholderCharacter:placeholderCharacter mode:mode characterSet:characterSet];
+}
 +(instancetype)formatterWithMask:(NSString*)mask
             placeholderCharacter:(unichar)placeholderCharacter
                             mode:(AKNumericFormatterMode)mode
 {
-  return [[AKNumericFormatter alloc] initWithMask:mask placeholderCharacter:placeholderCharacter mode:mode];
+  return [self formatterWithMask:mask placeholderCharacter:placeholderCharacter mode:mode characterSet:[NSCharacterSet decimalDigitCharacterSet]];
 }
 
 +(instancetype)formatterWithMask:(NSString*)mask placeholderCharacter:(unichar)placeholderCharacter
@@ -45,7 +53,7 @@
 }
 
 
--(instancetype)initWithMask:(NSString*)mask placeholderCharacter:(unichar)placeholderCharacter mode:(AKNumericFormatterMode)mode
+-(instancetype)initWithMask:(NSString*)mask placeholderCharacter:(unichar)placeholderCharacter mode:(AKNumericFormatterMode)mode characterSet:(NSCharacterSet *)characterSet
 {
   NSParameterAssert(mask);
   self = [super init];
@@ -55,19 +63,20 @@
   self.mode = mode;
   self.mask = mask;
   self.placeholderCharacter = placeholderCharacter;
+  self.characterSet = characterSet;
   return self;
 }
 
 -(NSUInteger)indexOfFirstDigitOrPlaceholderInMask
 {
   const NSUInteger placeholderIndex = [self.mask indexOfCharacter:self.placeholderCharacter];
-  const NSUInteger digitIndex = [self.mask rangeOfCharacterFromSet:[NSCharacterSet decimalDigitCharacterSet]].location;
+  const NSUInteger digitIndex = [self.mask rangeOfCharacterFromSet:self.characterSet].location;
   return MIN(placeholderIndex, digitIndex);
 }
 
 -(NSString*)formatString:(NSString*)string
 {
-  NSString* onlyDigitsString = [string stringContainingOnlyDecimalDigits];
+  NSString* onlyDigitsString = [string stringContainingOnlyAllowedCharacters:self.characterSet];
   if( onlyDigitsString.length == 0 ) {
     return @"";
   }
@@ -86,7 +95,7 @@
       break;
   }
 
-  if( [formattedString stringContainingOnlyDecimalDigits].length == 0 ) {
+  if( [formattedString stringContainingOnlyAllowedCharacters:self.characterSet].length == 0 ) {
     return @"";
   }
   return formattedString;
@@ -109,12 +118,11 @@
     return nil;
   }
   NSMutableString* result = [NSMutableString string];
-  NSCharacterSet* decimalCharacterSet = [NSCharacterSet decimalDigitCharacterSet];
   NSString* filteredMask = [self.mask filteredStringUsingBlock:^BOOL(unichar character)
   {
-    return character == self.placeholderCharacter || [decimalCharacterSet characterIsMember:character];
+    return character == self.placeholderCharacter || [self.characterSet characterIsMember:character];
   }];
-  NSString* filteredValue = [string stringContainingOnlyDecimalDigits];
+  NSString* filteredValue = [string stringContainingOnlyAllowedCharacters:self.characterSet];
   for( NSUInteger i = 0; i < filteredValue.length && i < filteredMask.length; ++i ) {
     if( [filteredMask characterAtIndex:i] == self.placeholderCharacter ) {
       [result appendString:[filteredValue substringWithRange:NSMakeRange(i, 1)]];
@@ -147,7 +155,7 @@
       } else {
         break;
       }
-    } else if( [[NSCharacterSet decimalDigitCharacterSet] characterIsMember:maskCharacter] ) {
+    } else if( [self.characterSet characterIsMember:maskCharacter] ) {
       if( digitIndex < onlyDigitsString.length && maskCharacter == [onlyDigitsString characterAtIndex:digitIndex] ) {
         [formattedString appendString:[NSString stringWithCharacters:&maskCharacter length:1]];
         ++digitIndex;
@@ -192,7 +200,7 @@
       } else {
         break;
       }
-    } else if( [[NSCharacterSet decimalDigitCharacterSet] characterIsMember:maskCharacter] ) {
+    } else if( [self.characterSet characterIsMember:maskCharacter] ) {
       if( digitIndex < onlyDigitsString.length && maskCharacter == [onlyDigitsString characterAtIndex:digitIndex] ) {
         [formattedString appendString:[NSString stringWithCharacters:&maskCharacter length:1]];
         ++digitIndex;
