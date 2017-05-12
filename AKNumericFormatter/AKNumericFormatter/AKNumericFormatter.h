@@ -22,6 +22,10 @@ typedef NS_ENUM(NSUInteger, AKNumericFormatterMode) {
 
 +(instancetype)formatterWithMask:(NSString*)mask
             placeholderCharacter:(unichar)placeholderCharacter
+                            mode:(AKNumericFormatterMode)mode
+                    characterSet:(NSCharacterSet *)characterSet;
++(instancetype)formatterWithMask:(NSString*)mask
+            placeholderCharacter:(unichar)placeholderCharacter
                             mode:(AKNumericFormatterMode)mode;
 // Uses AKNumericFormatterStrict mode
 +(instancetype)formatterWithMask:(NSString*)mask
@@ -31,6 +35,7 @@ typedef NS_ENUM(NSUInteger, AKNumericFormatterMode) {
 @property(nonatomic, readonly) AKNumericFormatterMode mode;
 @property(nonatomic, readonly, copy) NSString* mask;
 @property(nonatomic, readonly) unichar placeholderCharacter;
+@property(nonatomic, readonly, copy) NSCharacterSet* characterSet;
 
 -(NSUInteger)indexOfFirstDigitOrPlaceholderInMask;
 

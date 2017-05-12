@@ -76,11 +76,11 @@ static char UITextFieldIsFormatting;
                                                           toPosition:self.selectedTextRange.start];
   NSUInteger caretTailOffset = (NSUInteger)[self offsetFromPosition:self.selectedTextRange.end
                                                         toPosition:self.endOfDocument];
-  NSUInteger offsetDigitsCount = 0;
+  NSUInteger offsetCharsCount = 0;
   if( self.handleDeleteBackwards ) {
-    offsetDigitsCount = [[self.text substringToIndex:caretHeadOffset] countDecimalDigits];
+    offsetCharsCount = [[self.text substringToIndex:caretHeadOffset] countAllowedCharacters:self.numericFormatter.characterSet];
   } else {
-    offsetDigitsCount = [[self.text substringFromIndex:self.text.length - caretTailOffset] countDecimalDigits];
+    offsetCharsCount = [[self.text substringFromIndex:self.text.length - caretTailOffset] countAllowedCharacters:self.numericFormatter.characterSet];
   }
 
   // Format text
@@ -93,9 +93,9 @@ static char UITextFieldIsFormatting;
   // Restoring caret position
   NSInteger newCaretOffset = 0;
   if( self.handleDeleteBackwards ) {
-    newCaretOffset = [self.text minPrefixLengthContainingDecimalDigitsCount:offsetDigitsCount];
+    newCaretOffset = [self.text minPrefixLengthContainingCharsCount:offsetCharsCount inSet:self.numericFormatter.characterSet];
   } else {
-    newCaretOffset = self.text.length - [self.text minSuffixLengthContainingDecimalDigitsCount:offsetDigitsCount];
+    newCaretOffset = self.text.length - [self.text minSuffixLengthContainingCharsCount:offsetCharsCount inSet:self.numericFormatter.characterSet];
   }
   if( newCaretOffset < [self.numericFormatter indexOfFirstDigitOrPlaceholderInMask] ) {
     newCaretOffset = self.text.length;

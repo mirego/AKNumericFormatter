@@ -22,12 +22,11 @@
   return result;
 }
 
--(NSString*)stringContainingOnlyDecimalDigits
+-(NSString*)stringContainingOnlyAllowedCharacters:(NSCharacterSet *)characterSet
 {
-  NSCharacterSet* decimalDigitCharacterSet = [NSCharacterSet decimalDigitCharacterSet];
   return [self filteredStringUsingBlock:^BOOL(unichar character)
   {
-    return [decimalDigitCharacterSet characterIsMember:character];
+    return [characterSet characterIsMember:character];
   }];
 }
 
@@ -49,13 +48,12 @@
   return result;
 }
 
--(NSInteger)minPrefixLengthContainingDecimalDigitsCount:(NSUInteger)digitsCount
+-(NSInteger)minPrefixLengthContainingCharsCount:(NSUInteger)charsCount inSet:(NSCharacterSet *)characterSet
 {
-  NSCharacterSet* decimalDigitCharacterSet = [NSCharacterSet decimalDigitCharacterSet];
-  return [self minPrefixLengthContainingCharsCount:digitsCount
+  return [self minPrefixLengthContainingCharsCount:charsCount
                                    satisfyingBlock:^BOOL(unichar character)
   {
-    return [decimalDigitCharacterSet characterIsMember:character];
+    return [characterSet characterIsMember:character];
   }];
 }
 
@@ -77,13 +75,12 @@
   return result;
 }
 
--(NSInteger)minSuffixLengthContainingDecimalDigitsCount:(NSUInteger)digitsCount
+-(NSInteger)minSuffixLengthContainingCharsCount:(NSUInteger)charsCount inSet:(NSCharacterSet *)characterSet
 {
-  NSCharacterSet* decimalDigitCharacterSet = [NSCharacterSet decimalDigitCharacterSet];
-  return [self minSuffixLengthContainingCharsCount:digitsCount
+  return [self minSuffixLengthContainingCharsCount:charsCount
                                    satisfyingBlock:^BOOL(unichar character)
   {
-    return [decimalDigitCharacterSet characterIsMember:character];
+    return [characterSet characterIsMember:character];
   }];
 }
 
@@ -102,12 +99,11 @@
   return result;
 }
 
--(NSUInteger)countDecimalDigits
+-(NSUInteger)countAllowedCharacters:(NSCharacterSet *)characterSet
 {
-  NSCharacterSet* decimalDigitCharacterSet = [NSCharacterSet decimalDigitCharacterSet];
   return [self countCharsSatisfyingBlock:^BOOL(unichar character)
   {
-    return [decimalDigitCharacterSet characterIsMember:character];
+    return [characterSet characterIsMember:character];
   }];
 }
 
